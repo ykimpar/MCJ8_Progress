@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCJ8 Sortation Progress Calculator</title>
+<title>Sortation Progress Calculator</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -37,6 +37,7 @@ h1 {
   justify-content: center;
   gap: 8px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 .cycle-btn {
   padding: 8px 20px;
@@ -60,20 +61,91 @@ h1 {
   background: #1e1e32;
   border: 1px solid #333;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 16px;
   margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
 }
-.settings-section label {
+.settings-title {
   font-size: 11px;
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.settings-section input {
+.settings-toggle {
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #aaa;
+  font-size: 10px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.settings-toggle:hover { background: #444; color: #fff; }
+.settings-body { display: none; }
+.settings-body.show { display: block; }
+.cycle-config {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.cycle-config label {
+  font-size: 12px;
+  color: #aaa;
+}
+.cycle-config input {
+  background: #1a1a2e;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #fff;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+.cycle-config input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+.cycle-config input[type="text"] { width: 50px; text-align: center; }
+.cycle-config input[type="time"] { width: 110px; }
+.remove-cycle-btn {
+  background: #441111;
+  border: 1px solid #663333;
+  border-radius: 4px;
+  color: #f87171;
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.remove-cycle-btn:hover { background: #552222; }
+.add-cycle-btn {
+  background: #112244;
+  border: 1px solid #334466;
+  border-radius: 4px;
+  color: #60a5fa;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.add-cycle-btn:hover { background: #223355; }
+.briefing-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+}
+.briefing-row label {
+  font-size: 11px;
+  color: #888;
+}
+.briefing-row input {
   width: 60px;
   background: #1a1a2e;
   border: 1px solid #444;
@@ -82,13 +154,12 @@ h1 {
   color: #fff;
   font-size: 14px;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-weight: 600;
   text-align: right;
-  margin-left: 6px;
 }
-.settings-section input:focus {
-  outline: none;
-  border-color: #2563eb;
+.briefing-row input:focus { outline: none; border-color: #2563eb; }
+.briefing-note {
+  font-size: 10px;
+  color: #666;
 }
 /* Input Section */
 .input-grid {
@@ -128,9 +199,7 @@ h1 {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
-.input-group input[type="time"] {
-  font-size: 16px;
-}
+.input-group input[type="time"] { font-size: 16px; }
 /* Results Section */
 .results {
   background: #222;
@@ -169,6 +238,12 @@ h1 {
   font-size: 18px;
   font-weight: 600;
   color: #fff;
+}
+.result-sub {
+  font-size: 12px;
+  color: #888;
+  margin-left: 8px;
+  font-weight: 400;
 }
 /* Logic tooltip button */
 .logic-btn {
@@ -243,16 +318,12 @@ h1 {
   justify-content: space-between;
   margin-bottom: 10px;
 }
-.progress-header span {
-  font-size: 12px;
-  color: #888;
-}
+.progress-header span { font-size: 12px; color: #888; }
 .progress-bar-bg {
   height: 12px;
   background: #333;
   border-radius: 6px;
   overflow: hidden;
-  position: relative;
 }
 .progress-bar-fill {
   height: 100%;
@@ -283,30 +354,32 @@ h1 {
 /* Responsive */
 @media (max-width: 600px) {
   .input-grid { grid-template-columns: 1fr; }
-  .settings-section { flex-direction: column; align-items: flex-start; }
+  .cycle-config { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>MCJ8 Sortation Progress</h1>
+  <h1>Sortation Progress Calculator</h1>
   <p class="subtitle">Induction 進捗計算ツール</p>
 
   <!-- Cycle Selector -->
-  <div class="cycle-selector">
-    <button class="cycle-btn" onclick="setCycle('C1')">C1</button>
-    <button class="cycle-btn active" onclick="setCycle('C2')">C2</button>
-    <button class="cycle-btn" onclick="setCycle('C3')">C3</button>
-  </div>
+  <div class="cycle-selector" id="cycleSelector"></div>
 
   <!-- Settings -->
   <div class="settings-section">
-    <div>
-      <label>朝礼時間（分）</label>
-      <input type="number" id="briefingMin" value="7" min="0" max="30" oninput="updateCycleStart(); calculate();">
+    <div class="settings-title">
+      <span>サイクル設定</span>
+      <button class="settings-toggle" onclick="toggleSettings()">設定を開く</button>
     </div>
-    <div style="font-size: 11px; color: #666;">
-      ※ C1・C2の開始時刻に朝礼時間を加算します（C3は固定16:00）
+    <div class="settings-body" id="settingsBody">
+      <div id="cycleConfigList"></div>
+      <button class="add-cycle-btn" onclick="addCycle()">＋ サイクル追加</button>
+      <div class="briefing-row">
+        <label>朝礼時間（分）</label>
+        <input type="number" id="briefingMin" value="7" min="0" max="30" oninput="saveSettings(); renderCycles(); calculate();">
+        <span class="briefing-note">※ 各サイクル開始時刻に加算されます</span>
+      </div>
     </div>
   </div>
 
@@ -375,25 +448,19 @@ h1 {
     </div>
 
     <div class="result-row">
-      <span class="result-label">残り時間（ENDまで）<button class="logic-btn" onclick="toggleLogic('logic-timeleft')">?</button></span>
-      <span class="result-value" id="timeLeft">—</span>
-      <div class="logic-detail" id="logic-timeleft">IND END時刻 − 現在時刻</div>
-    </div>
-
-    <div class="result-row">
-      <span class="result-label">残り実働可能時間<button class="logic-btn" onclick="toggleLogic('logic-workleft')">?</button></span>
+      <span class="result-label">残り実働可能時間（ENDまで）<button class="logic-btn" onclick="toggleLogic('logic-workleft')">?</button></span>
       <span class="result-value" id="workLeft">—</span>
-      <div class="logic-detail" id="logic-workleft">残り時間 − 残り休憩見込み時間</div>
+      <div class="logic-detail" id="logic-workleft">(IND END時刻 − 現在時刻) − 残り休憩見込み時間<br>= 残り時間から休憩を引いた実際に作業できる時間</div>
     </div>
 
     <div class="result-row">
       <span class="result-label">必要PPH（ENDに間に合う最低ライン）<button class="logic-btn" onclick="toggleLogic('logic-reqpph')">?</button></span>
       <span class="result-value" id="requiredPPH">—</span>
-      <div class="logic-detail" id="logic-reqpph">残荷物数 ÷ 残り実働可能時間（時間換算）<br>= 残荷物 ÷ ((残り時間 − 残り休憩見込み) ÷ 60)</div>
+      <div class="logic-detail" id="logic-reqpph">残荷物数 ÷ 残り実働可能時間（時間換算）<br>= 残荷物 ÷ (残り実働可能時間 ÷ 60)</div>
     </div>
 
     <div class="result-row">
-      <span class="result-label">現ペース維持時の推定END<button class="logic-btn" onclick="toggleLogic('logic-estend')">?</button></span>
+      <span class="result-label">現ペース維持時の推定END <button class="logic-btn" onclick="toggleLogic('logic-estend')">?</button></span>
       <span class="result-value" id="estimatedEnd">—</span>
       <div class="logic-detail" id="logic-estend">現在時刻 + (残荷物数 ÷ 平均PPH × 60) + 残り休憩見込み<br>※現在の平均ペースで残りを処理した場合の完了見込み時刻</div>
     </div>
@@ -423,35 +490,121 @@ h1 {
 </div>
 
 <script>
-// Cycle presets (base start times without briefing)
-const cycleBase = {
-  C1: { baseStart: [6, 0], end: '08:00' },
-  C2: { baseStart: [13, 0], end: '15:00' },
-  C3: { baseStart: null, end: '17:00', fixedStart: '16:00' }
-};
+// Default cycle configurations
+const defaultCycles = [
+  { name: 'C1', baseStart: '06:00', end: '08:00' },
+  { name: 'C2', baseStart: '13:00', end: '15:00' },
+  { name: 'C3', baseStart: '16:00', end: '17:00' }
+];
 
-let currentCycle = 'C2';
+let cycles = [];
+let currentCycleIndex = 1; // default C2
 
-function setCycle(cycle) {
-  currentCycle = cycle;
-  document.querySelectorAll('.cycle-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  updateCycleStart();
-  document.getElementById('indEnd').value = cycleBase[cycle].end;
+// Load settings from localStorage
+function loadSettings() {
+  const saved = localStorage.getItem('sortation_cycles');
+  if (saved) {
+    cycles = JSON.parse(saved);
+  } else {
+    cycles = JSON.parse(JSON.stringify(defaultCycles));
+  }
+  const savedBriefing = localStorage.getItem('sortation_briefing');
+  if (savedBriefing !== null) {
+    document.getElementById('briefingMin').value = savedBriefing;
+  }
+  const savedCycleIndex = localStorage.getItem('sortation_currentCycle');
+  if (savedCycleIndex !== null) {
+    currentCycleIndex = parseInt(savedCycleIndex);
+  }
+}
+
+// Save settings to localStorage
+function saveSettings() {
+  localStorage.setItem('sortation_cycles', JSON.stringify(cycles));
+  localStorage.setItem('sortation_briefing', document.getElementById('briefingMin').value);
+  localStorage.setItem('sortation_currentCycle', currentCycleIndex);
+}
+
+// Render cycle selector buttons
+function renderCycles() {
+  const selector = document.getElementById('cycleSelector');
+  selector.innerHTML = '';
+  cycles.forEach((cycle, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'cycle-btn' + (idx === currentCycleIndex ? ' active' : '');
+    btn.textContent = cycle.name;
+    btn.onclick = () => selectCycle(idx);
+    selector.appendChild(btn);
+  });
+  applyCycle();
+}
+
+// Render cycle config in settings
+function renderCycleConfig() {
+  const list = document.getElementById('cycleConfigList');
+  list.innerHTML = '';
+  cycles.forEach((cycle, idx) => {
+    const row = document.createElement('div');
+    row.className = 'cycle-config';
+    row.innerHTML = `
+      <input type="text" value="${cycle.name}" placeholder="名前" onchange="cycles[${idx}].name=this.value; saveSettings(); renderCycles();">
+      <div><label style="font-size:10px;color:#666;">基本開始</label><input type="time" value="${cycle.baseStart}" onchange="cycles[${idx}].baseStart=this.value; saveSettings(); renderCycles(); calculate();"></div>
+      <div><label style="font-size:10px;color:#666;">END</label><input type="time" value="${cycle.end}" onchange="cycles[${idx}].end=this.value; saveSettings(); renderCycles(); calculate();"></div>
+      <div></div>
+      <button class="remove-cycle-btn" onclick="removeCycle(${idx})">✕</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function selectCycle(idx) {
+  currentCycleIndex = idx;
+  saveSettings();
+  renderCycles();
   calculate();
 }
 
-function updateCycleStart() {
-  const briefing = parseInt(document.getElementById('briefingMin').value) || 0;
-  const cycle = cycleBase[currentCycle];
+function applyCycle() {
+  if (currentCycleIndex >= cycles.length) currentCycleIndex = 0;
+  const cycle = cycles[currentCycleIndex];
+  if (!cycle) return;
 
-  if (cycle.fixedStart) {
-    document.getElementById('indStart').value = cycle.fixedStart;
+  const briefing = parseInt(document.getElementById('briefingMin').value) || 0;
+  const [h, m] = cycle.baseStart.split(':').map(Number);
+  const totalMin = h * 60 + m + briefing;
+  const startH = Math.floor(totalMin / 60);
+  const startM = totalMin % 60;
+  document.getElementById('indStart').value = `${String(startH).padStart(2, '0')}:${String(startM).padStart(2, '0')}`;
+  document.getElementById('indEnd').value = cycle.end;
+}
+
+function addCycle() {
+  cycles.push({ name: `C${cycles.length + 1}`, baseStart: '18:00', end: '20:00' });
+  saveSettings();
+  renderCycleConfig();
+  renderCycles();
+}
+
+function removeCycle(idx) {
+  if (cycles.length <= 1) return;
+  cycles.splice(idx, 1);
+  if (currentCycleIndex >= cycles.length) currentCycleIndex = cycles.length - 1;
+  saveSettings();
+  renderCycleConfig();
+  renderCycles();
+  calculate();
+}
+
+function toggleSettings() {
+  const body = document.getElementById('settingsBody');
+  const btn = event.target;
+  if (body.classList.contains('show')) {
+    body.classList.remove('show');
+    btn.textContent = '設定を開く';
   } else {
-    const totalMin = cycle.baseStart[0] * 60 + cycle.baseStart[1] + briefing;
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    document.getElementById('indStart').value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    body.classList.add('show');
+    btn.textContent = '設定を閉じる';
+    renderCycleConfig();
   }
 }
 
@@ -464,8 +617,7 @@ function setNow() {
 }
 
 function toggleLogic(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('show');
+  document.getElementById(id).classList.toggle('show');
 }
 
 function timeToMinutes(timeStr) {
@@ -482,6 +634,7 @@ function minutesToTimeStr(minutes) {
 }
 
 function minutesToDuration(minutes) {
+  if (minutes <= 0) return '—';
   const h = Math.floor(minutes / 60);
   const m = Math.round(minutes % 60);
   if (h === 0) return `${m}分`;
@@ -498,37 +651,29 @@ function calculate() {
   const breakTaken = parseInt(document.getElementById('breakTaken').value) || 0;
   const breakRemaining = parseInt(document.getElementById('breakRemaining').value) || 0;
 
-  // Remaining packages
+  // Remaining
   const remaining = Math.max(0, planVolume - inducted);
   document.getElementById('remaining').textContent = remaining.toLocaleString();
 
-  // Elapsed time (from IND start to now)
+  // Elapsed
   let elapsedMin = null;
   if (indStart !== null && currentTime !== null) {
     elapsedMin = currentTime - indStart;
-    if (elapsedMin > 0) {
-      document.getElementById('elapsed').textContent = minutesToDuration(elapsedMin);
-    } else {
-      document.getElementById('elapsed').textContent = '—';
-    }
+    document.getElementById('elapsed').textContent = elapsedMin > 0 ? minutesToDuration(elapsedMin) : '—';
   } else {
     document.getElementById('elapsed').textContent = '—';
   }
 
-  // Actual work time (elapsed - break taken)
+  // Actual work time
   let actualWorkMin = null;
   if (elapsedMin && elapsedMin > 0) {
     actualWorkMin = elapsedMin - breakTaken;
-    if (actualWorkMin > 0) {
-      document.getElementById('actualWork').textContent = minutesToDuration(actualWorkMin);
-    } else {
-      document.getElementById('actualWork').textContent = '—';
-    }
+    document.getElementById('actualWork').textContent = actualWorkMin > 0 ? minutesToDuration(actualWorkMin) : '—';
   } else {
     document.getElementById('actualWork').textContent = '—';
   }
 
-  // Average PPH (actual work time based)
+  // Average PPH
   let avgPPH = null;
   if (actualWorkMin && actualWorkMin > 0 && inducted > 0) {
     avgPPH = Math.round(inducted / (actualWorkMin / 60));
@@ -537,27 +682,19 @@ function calculate() {
     document.getElementById('avgPPH').textContent = '—';
   }
 
-  // Time left until END
-  let timeLeftMin = null;
-  if (indEnd !== null && currentTime !== null) {
-    timeLeftMin = indEnd - currentTime;
-    if (timeLeftMin > 0) {
-      document.getElementById('timeLeft').textContent = minutesToDuration(timeLeftMin);
-    } else {
-      document.getElementById('timeLeft').textContent = '超過';
-    }
-  } else {
-    document.getElementById('timeLeft').textContent = '—';
-  }
-
-  // Work time left (time left - remaining breaks)
+  // Work time left (combined: time left minus remaining break)
   let workLeftMin = null;
-  if (timeLeftMin && timeLeftMin > 0) {
-    workLeftMin = timeLeftMin - breakRemaining;
-    if (workLeftMin > 0) {
-      document.getElementById('workLeft').textContent = minutesToDuration(workLeftMin);
+  if (indEnd !== null && currentTime !== null) {
+    const timeLeftMin = indEnd - currentTime;
+    if (timeLeftMin > 0) {
+      workLeftMin = timeLeftMin - breakRemaining;
+      if (workLeftMin > 0) {
+        document.getElementById('workLeft').textContent = minutesToDuration(workLeftMin);
+      } else {
+        document.getElementById('workLeft').textContent = '超過';
+      }
     } else {
-      document.getElementById('workLeft').textContent = '—';
+      document.getElementById('workLeft').textContent = '超過';
     }
   } else {
     document.getElementById('workLeft').textContent = '—';
@@ -574,89 +711,7 @@ function calculate() {
     document.getElementById('requiredPPH').textContent = '—';
   }
 
-  // Estimated END (at current average pace + remaining break)
+  // Estimated END with current pace shown
   if (avgPPH && avgPPH > 0 && remaining > 0 && currentTime !== null) {
     const minsNeeded = (remaining / avgPPH) * 60 + breakRemaining;
-    const estimatedEndMin = currentTime + minsNeeded;
-    document.getElementById('estimatedEnd').textContent = minutesToTimeStr(estimatedEndMin);
-  } else if (remaining === 0) {
-    document.getElementById('estimatedEnd').textContent = '完了済み';
-  } else {
-    document.getElementById('estimatedEnd').textContent = '—';
-  }
-
-  // Judgment
-  const judgmentEl = document.getElementById('judgment');
-  const judgmentText = document.getElementById('judgmentText');
-  const judgmentDetail = document.getElementById('judgmentDetail');
-  judgmentEl.className = 'judgment';
-
-  if (remaining === 0 && planVolume > 0) {
-    judgmentEl.classList.add('safe');
-    judgmentText.textContent = '✓ 完了';
-    judgmentDetail.textContent = '';
-  } else if (avgPPH && requiredPPH) {
-    const margin = avgPPH - requiredPPH;
-    const marginPercent = Math.round((margin / requiredPPH) * 100);
-
-    if (margin >= 0) {
-      if (marginPercent >= 20) {
-        judgmentEl.classList.add('safe');
-        judgmentText.textContent = '✓ 余裕あり';
-      } else {
-        judgmentEl.classList.add('safe');
-        judgmentText.textContent = '✓ 間に合う';
-      }
-      judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} > 必要PPH ${requiredPPH.toLocaleString()}（余裕: +${margin.toLocaleString()} / +${marginPercent}%）`;
-    } else {
-      const deficit = Math.abs(margin);
-      if (marginPercent >= -15) {
-        judgmentEl.classList.add('warning');
-        judgmentText.textContent = '⚠ ギリギリ';
-        judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} < 必要PPH ${requiredPPH.toLocaleString()}（不足: -${deficit.toLocaleString()} / ${marginPercent}%）`;
-      } else {
-        judgmentEl.classList.add('danger');
-        judgmentText.textContent = '✗ 間に合わない';
-        judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} < 必要PPH ${requiredPPH.toLocaleString()}（不足: -${deficit.toLocaleString()} / ${marginPercent}%）`;
-      }
-    }
-  } else {
-    judgmentText.textContent = '—';
-    judgmentDetail.textContent = '数値を入力してください';
-  }
-
-  // Progress bar
-  let progressPct = 0;
-  if (planVolume > 0) {
-    progressPct = Math.min(100, Math.round((inducted / planVolume) * 100));
-  }
-  document.getElementById('progressPercent').textContent = `${progressPct}%`;
-  document.getElementById('progressBar').style.width = `${progressPct}%`;
-  document.getElementById('progressDetail').textContent = `${inducted.toLocaleString()} / ${planVolume.toLocaleString()}`;
-
-  // Time progress
-  if (indStart !== null && indEnd !== null && currentTime !== null) {
-    const totalTime = indEnd - indStart;
-    const timeElapsed = currentTime - indStart;
-    if (totalTime > 0 && timeElapsed >= 0) {
-      const timePct = Math.min(100, Math.round((timeElapsed / totalTime) * 100));
-      document.getElementById('timeProgress').textContent = `時間進捗: ${timePct}%`;
-
-      const bar = document.getElementById('progressBar');
-      if (progressPct >= timePct) {
-        bar.style.background = '#15803d';
-      } else if (progressPct >= timePct - 10) {
-        bar.style.background = '#d97706';
-      } else {
-        bar.style.background = '#dc2626';
-      }
-    }
-  }
-}
-
-// Initialize
-setNow();
-updateCycleStart();
-</script>
-</body>
-</html>
+    const estimatedEnd
