@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCJ8 Sortation Progress Calculator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Cycle Selector */
+    .cycle-selector {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .cycle-btn {
+      padding: 8px 20px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #222;
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cycle-btn:hover { border-color: #555; color: #fff; }
+    .cycle-btn.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    /* Input Section */
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .input-group {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      background: #1a1a2e;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 18px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-weight: 600;
+      text-align: right;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    .input-group input[type="time"] {
+      font-size: 16px;
+    }
+
+    /* Results Section */
+    .results {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .results-title {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2a3e;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label {
+      font-size: 13px;
+      color: #aaa;
+    }
+    .result-value {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* Judgment Section */
+    .judgment {
+      background: #222;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      border: 2px solid #333;
+      margin-bottom: 16px;
+    }
+    .judgment-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .judgment-text {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .judgment-detail {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+    }
+    .judgment.safe { border-color: #15803d; }
+    .judgment.safe .judgment-text { color: #4ade80; }
+    .judgment.warning { border-color: #d97706; }
+    .judgment.warning .judgment-text { color: #fbbf24; }
+    .judgment.danger { border-color: #dc2626; }
+    .judgment.danger .judgment-text { color: #f87171; }
+
+    /* Progress Bar */
+    .progress-section {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .progress-header span {
+      font-size: 12px;
+      color: #888;
+    }
+    .progress-bar-bg {
+      height: 12px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s ease, background 0.3s ease;
+      background: #2563eb;
+    }
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* Now Button */
+    .now-btn {
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 8px;
+      cursor: pointer;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .now-btn:hover { background: #444; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .input-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MCJ8 Sortation Progress</h1>
+    <p class="subtitle">Induction 進捗計算ツール</p>
+
+    <!-- Cycle Selector -->
+    <div class="cycle-selector">
+      <button class="cycle-btn" onclick="setCycle('C1')">C1</button>
+      <button class="cycle-btn active" onclick="setCycle('C2')">C2</button>
+      <button class="cycle-btn" onclick="setCycle('C3')">C3</button>
+    </div>
+
+    <!-- Inputs -->
+    <div class="input-grid">
+      <div class="input-group">
+        <label>Plan Volume（計画数）</label>
+        <input type="number" id="planVolume" placeholder="0" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>Inducted（処理済み）</label>
+        <input type="number" id="inducted" placeholder="0" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>IND 開始時刻</label>
+        <input type="time" id="indStart" value="12:00" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>IND END 時刻（デッドライン）</label>
+        <input type="time" id="indEnd" value="15:00" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>現在時刻 <button class="now-btn" onclick="setNow()">NOW</button></label>
+        <input type="time" id="currentTime" oninput="calculate()">
+      </div>
+      <div class="input-group">
+        <label>直近15分 PPH（参考）</label>
+        <input type="number" id="recentPPH" placeholder="—" oninput="calculate()">
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results">
+      <div class="results-title">計算結果</div>
+      <div class="result-row">
+        <span class="result-label">残荷物数</span>
+        <span class="result-value" id="remaining">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">経過時間（IND開始から）</span>
+        <span class="result-value" id="elapsed">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">平均PPH（経過時間ベース）</span>
+        <span class="result-value" id="avgPPH">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">残り時間（ENDまで）</span>
+        <span class="result-value" id="timeLeft">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">必要PPH（ENDに間に合う最低ライン）</span>
+        <span class="result-value" id="requiredPPH">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">現ペース維持時の推定END</span>
+        <span class="result-value" id="estimatedEnd">—</span>
+      </div>
+    </div>
+
+    <!-- Judgment -->
+    <div class="judgment" id="judgment">
+      <div class="judgment-label">判定</div>
+      <div class="judgment-text" id="judgmentText">—</div>
+      <div class="judgment-detail" id="judgmentDetail"></div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>インダクション進捗</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+      </div>
+      <div class="progress-stats">
+        <span id="progressDetail">0 / 0</span>
+        <span id="timeProgress">時間進捗: —</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cycle presets
+    const cyclePresets = {
+      C1: { start: '06:00', end: '08:00' },
+      C2: { start: '12:00', end: '15:00' },
+      C3: { start: '15:30', end: '17:00' }
+    };
+
+    function setCycle(cycle) {
+      document.querySelectorAll('.cycle-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('indStart').value = cyclePresets[cycle].start;
+      document.getElementById('indEnd').value = cyclePresets[cycle].end;
+      calculate();
+    }
+
+    function setNow() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('currentTime').value = `${h}:${m}`;
+      calculate();
+    }
+
+    function timeToMinutes(timeStr) {
+      if (!timeStr) return null;
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function minutesToTimeStr(minutes) {
+      if (minutes < 0) return '—';
+      const h = Math.floor(minutes / 60);
+      const m = Math.round(minutes % 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function minutesToDuration(minutes) {
+      const h = Math.floor(minutes / 60);
+      const m = Math.round(minutes % 60);
+      if (h === 0) return `${m}分`;
+      if (m === 0) return `${h}時間`;
+      return `${h}時間${m}分`;
+    }
+
+    function calculate() {
+      const planVolume = parseInt(document.getElementById('planVolume').value) || 0;
+      const inducted = parseInt(document.getElementById('inducted').value) || 0;
+      const indStart = timeToMinutes(document.getElementById('indStart').value);
+      const indEnd = timeToMinutes(document.getElementById('indEnd').value);
+      const currentTime = timeToMinutes(document.getElementById('currentTime').value);
+      const recentPPH = parseInt(document.getElementById('recentPPH').value) || null;
+
+      // Remaining packages
+      const remaining = Math.max(0, planVolume - inducted);
+      document.getElementById('remaining').textContent = remaining.toLocaleString();
+
+      // Elapsed time (from IND start to now)
+      let elapsedMin = null;
+      if (indStart !== null && currentTime !== null) {
+        elapsedMin = currentTime - indStart;
+        if (elapsedMin > 0) {
+          document.getElementById('elapsed').textContent = minutesToDuration(elapsedMin);
+        } else {
+          document.getElementById('elapsed').textContent = '—';
+        }
+      } else {
+        document.getElementById('elapsed').textContent = '—';
+      }
+
+      // Average PPH (elapsed-time based)
+      let avgPPH = null;
+      if (elapsedMin && elapsedMin > 0 && inducted > 0) {
+        avgPPH = Math.round(inducted / (elapsedMin / 60));
+        document.getElementById('avgPPH').textContent = avgPPH.toLocaleString();
+      } else {
+        document.getElementById('avgPPH').textContent = '—';
+      }
+
+      // Time left until END
+      let timeLeftMin = null;
+      if (indEnd !== null && currentTime !== null) {
+        timeLeftMin = indEnd - currentTime;
+        if (timeLeftMin > 0) {
+          document.getElementById('timeLeft').textContent = minutesToDuration(timeLeftMin);
+        } else {
+          document.getElementById('timeLeft').textContent = '超過';
+        }
+      } else {
+        document.getElementById('timeLeft').textContent = '—';
+      }
+
+      // Required PPH
+      let requiredPPH = null;
+      if (timeLeftMin && timeLeftMin > 0 && remaining > 0) {
+        requiredPPH = Math.round(remaining / (timeLeftMin / 60));
+        document.getElementById('requiredPPH').textContent = requiredPPH.toLocaleString();
+      } else if (remaining === 0) {
+        document.getElementById('requiredPPH').textContent = '完了済み';
+      } else {
+        document.getElementById('requiredPPH').textContent = '—';
+      }
+
+      // Estimated END (at current average pace)
+      if (avgPPH && avgPPH > 0 && remaining > 0 && currentTime !== null) {
+        const minsNeeded = (remaining / avgPPH) * 60;
+        const estimatedEndMin = currentTime + minsNeeded;
+        document.getElementById('estimatedEnd').textContent = minutesToTimeStr(estimatedEndMin);
+      } else if (remaining === 0) {
+        document.getElementById('estimatedEnd').textContent = '完了済み';
+      } else {
+        document.getElementById('estimatedEnd').textContent = '—';
+      }
+
+      // Judgment
+      const judgmentEl = document.getElementById('judgment');
+      const judgmentText = document.getElementById('judgmentText');
+      const judgmentDetail = document.getElementById('judgmentDetail');
+      judgmentEl.className = 'judgment';
+
+      if (remaining === 0 && planVolume > 0) {
+        judgmentEl.classList.add('safe');
+        judgmentText.textContent = '✓ 完了';
+        judgmentDetail.textContent = '';
+      } else if (avgPPH && requiredPPH) {
+        const margin = avgPPH - requiredPPH;
+        const marginPercent = Math.round((margin / requiredPPH) * 100);
+
+        if (margin >= 0) {
+          if (marginPercent >= 20) {
+            judgmentEl.classList.add('safe');
+            judgmentText.textContent = '✓ 余裕あり';
+          } else {
+            judgmentEl.classList.add('safe');
+            judgmentText.textContent = '✓ 間に合う';
+          }
+          judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} > 必要PPH ${requiredPPH.toLocaleString()}（余裕: +${margin.toLocaleString()} / +${marginPercent}%）`;
+        } else {
+          const deficit = Math.abs(margin);
+          if (marginPercent >= -15) {
+            judgmentEl.classList.add('warning');
+            judgmentText.textContent = '⚠ ギリギリ';
+            judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} < 必要PPH ${requiredPPH.toLocaleString()}（不足: -${deficit.toLocaleString()} / ${marginPercent}%）`;
+          } else {
+            judgmentEl.classList.add('danger');
+            judgmentText.textContent = '✗ 間に合わない';
+            judgmentDetail.textContent = `平均PPH ${avgPPH.toLocaleString()} < 必要PPH ${requiredPPH.toLocaleString()}（不足: -${deficit.toLocaleString()} / ${marginPercent}%）`;
+          }
+        }
+      } else {
+        judgmentText.textContent = '—';
+        judgmentDetail.textContent = '数値を入力してください';
+      }
+
+      // Progress bar
+      let progressPct = 0;
+      if (planVolume > 0) {
+        progressPct = Math.min(100, Math.round((inducted / planVolume) * 100));
+      }
+      document.getElementById('progressPercent').textContent = `${progressPct}%`;
+      document.getElementById('progressBar').style.width = `${progressPct}%`;
+      document.getElementById('progressDetail').textContent = `${inducted.toLocaleString()} / ${planVolume.toLocaleString()}`;
+
+      // Time progress
+      if (indStart !== null && indEnd !== null && currentTime !== null) {
+        const totalTime = indEnd - indStart;
+        const timeElapsed = currentTime - indStart;
+        if (totalTime > 0 && timeElapsed >= 0) {
+          const timePct = Math.min(100, Math.round((timeElapsed / totalTime) * 100));
+          document.getElementById('timeProgress').textContent = `時間進捗: ${timePct}%`;
+
+          // Color progress bar based on judgment
+          const bar = document.getElementById('progressBar');
+          if (progressPct >= timePct) {
+            bar.style.background = '#15803d';
+          } else if (progressPct >= timePct - 10) {
+            bar.style.background = '#d97706';
+          } else {
+            bar.style.background = '#dc2626';
+          }
+        }
+      }
+    }
+
+    // Initialize with current time
+    setNow();
+  </script>
+</body>
+</html>
+
